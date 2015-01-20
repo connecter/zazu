@@ -1,0 +1,12 @@
+{application, zazu,
+ [
+  {description, "Connecter MongooseIM Plug-in"},
+  {vsn, "0.1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+%  {mod, { myapp_app, []}},
+  {env, []}
+ ]}.
