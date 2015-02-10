@@ -39,24 +39,15 @@ build:
           docker push connecter/zazu:staging
 
     - script:
-        name: save docker image
-        code: |
-          docker save zazu > "$WERCKER_OUTPUT_DIR/docker_image.tar"
-
-    - script:
         name: echo docker pull command
         code: |
           echo "docker pull connecter/zazu:$(cat release_tag)"
 
 deploy:
   steps:
-    - script:
-        name: load docker image
-        code: |
-          docker load < docker_image.tar
 
     - add-to-known_hosts:
-        hostname: www.connecter.io
+        hostname: $HOSTNAME
 
     - mktemp:
        envvar: PRIVATEKEY_PATH
@@ -64,10 +55,13 @@ deploy:
     - create-file:
        name: write key
        filename: $PRIVATEKEY_PATH
-       content: $FLEET_DEPLOY_KEY_PRIVATE
+       content: $KEY_PRIVATE
        overwrite: true
        hide-from-log: true
 
     - script:
        name: restart zazu
-       code: ssh -i $PRIVATEKEY_PATH -l core -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no www.connecter.io "fleetctl stop zazu@1.service && fleetctl start zazu@1.service"
+       code: 
+         ssh -i $PRIVATEKEY_PATH -l core -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $HOSTNAME "docker ps -a"
+         ssh -i $PRIVATEKEY_PATH -l core -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $HOSTNAME "fleetctl stop zazu@1.service && fleetctl start zazu@1.service"
+         ssh -i $PRIVATEKEY_PATH -l core -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $HOSTNAME "docker ps -a"
